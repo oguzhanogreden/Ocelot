@@ -58,8 +58,28 @@ public partial class FileConfigurationFluentValidator : AbstractValidator<FileCo
             .WithMessage((_, aggregateRoute) => $"Routes for {nameof(aggregateRoute)} {aggregateRoute.UpstreamPathTemplate} either do not exist or do not have correct ServiceName property");
 
         RuleForEach(configuration => configuration.Aggregates)
-            .Must((config, aggregateRoute) => DoesNotContainRoutesWithSpecificRequestIdKeys(aggregateRoute, config.Routes))
-            .WithMessage((_, aggregateRoute) => $"{nameof(aggregateRoute)} {aggregateRoute.UpstreamPathTemplate} contains Route with specific RequestIdKey, this is not possible with Aggregates");
+            .Must((config, aggregateRoute) =>
+                DoesNotContainRoutesWithSpecificRequestIdKeys(aggregateRoute, config.Routes))
+            .WithMessage((_, aggregateRoute) =>
+                $"{nameof(aggregateRoute)} {aggregateRoute.UpstreamPathTemplate} contains Route with specific RequestIdKey, this is not possible with Aggregates");
+
+        RuleForEach(configuration => configuration.GlobalRateLimitRules)
+            .Must((config, globalRule) =>
+                globalRule.RouteKeys.All(key =>
+                    config.Routes.Any(route => route.Key == key)))
+            .WithMessage((_, globalRule) =>
+                $"One or more RouteKeys in the global rate limit rule do not match any configured route. Invalid keys: {string.Join(", ", globalRule.RouteKeys.Where(key => !_.Routes.Any(r => r.Key == key)))}");
+
+        RuleForEach(configuration => configuration.GlobalRateLimitRules)
+            .Must(rule => !string.IsNullOrEmpty(rule.Period))
+            .WithMessage("Period must be specified when rate limiting is enabled");
+        RuleForEach(configuration => configuration.GlobalRateLimitRules)
+            .Must(rule => rule.Limit > 0)
+            .WithMessage("Limit must be greater than 0 when rate limiting is enabled");
+
+        RuleForEach(configuration => configuration.GlobalRateLimitRules)
+            .Must(rule => rule.PeriodTimespan >= 0)
+            .WithMessage("PeriodTimespan must be greater than or equal to 0");
     }
 
     private bool HaveServiceDiscoveryProviderRegistered(FileRoute route, FileServiceDiscoveryProvider serviceDiscoveryProvider)

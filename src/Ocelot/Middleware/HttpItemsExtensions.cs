@@ -73,6 +73,7 @@ public static class HttpItemsExtensions
     public static DownstreamResponse DownstreamResponse(this IDictionary<object, object> input) =>
         input.Get<DownstreamResponse>("DownstreamResponse");
 
+    // What is a "Downstream route"?
     public static DownstreamRoute DownstreamRoute(this IDictionary<object, object> input) =>
         input.Get<DownstreamRoute>("DownstreamRoute");
 

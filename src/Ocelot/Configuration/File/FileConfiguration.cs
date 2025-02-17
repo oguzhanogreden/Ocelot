@@ -8,6 +8,7 @@ public class FileConfiguration
         GlobalConfiguration = new FileGlobalConfiguration();
         Aggregates = new List<FileAggregateRoute>();
         DynamicRoutes = new List<FileDynamicRoute>();
+        GlobalRateLimitRules = new List<FileGlobalRateLimitRule>();
     }
 
     public List<FileRoute> Routes { get; set; }
@@ -17,4 +18,6 @@ public class FileConfiguration
     public List<FileAggregateRoute> Aggregates { get; set; }
 
     public FileGlobalConfiguration GlobalConfiguration { get; set; }
+
+    public List<FileGlobalRateLimitRule> GlobalRateLimitRules { get; set; }
 }
